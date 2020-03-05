@@ -1,0 +1,9 @@
+###############LABELING######################
+docker node ls
+node1_id=$(docker node list | grep postgres-file-1.novalocal | awk '{print $1}')
+node2_id=$(docker node list | grep postgres-file-2.novalocal | awk '{print $1}')
+echo $node2_id
+echo $node1_id
+docker node update --label-add type=master ${node1_id?}
+docker node update --label-add type=slave ${node2_id?}
+############################################
