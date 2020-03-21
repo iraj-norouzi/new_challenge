@@ -1,0 +1,73 @@
+version: "3.7"
+services:
+  core:
+    image: 10.0.10.86:5000/igap:cloud10
+    networks:
+      - overlay-network
+#    volumes:
+#      - /home/iGap/:/home/iGap/
+#    read_only: true
+    deploy:
+      resources:
+        limits:
+          cpus: '16'
+          memory: 20G
+        reservations:
+          cpus: '8'
+          memory: 10G
+      placement:
+        constraints:
+          - node.role == worker
+
+      restart_policy:
+        condition: on-failure
+#    depends_on:
+#      - rabbitmq
+    hostname: CORE_IGAP
+    stdin_open: true
+    tty: true
+    ports:
+        - '7072:7072'
+        - '8739:8739'
+        - '7272:7272'
+    depends_on:
+      - register
+  register:
+    image: 10.0.10.86:5000/igap:register
+    networks:
+      - host
+#      - overlay-network
+#    read_only: true
+    deploy:
+      resources:
+        limits:
+          cpus: '16'
+          memory: 20G
+        reservations:
+          cpus: '8'
+          memory: 10G
+      placement:
+        constraints:
+          - node.role == manager
+
+      restart_policy:
+        condition: on-failure
+    depends_on:
+      - rabbitmq
+    hostname: CORE_REGISTER
+    stdin_open: true
+    tty: true
+#    ports:
+#        - '1236:1236'
+networks:
+  host:
+    external: true
+
+  overlay-network:
+    external: true
+#networks:
+#  host:
+#    external: true
+
+[root@dockerce-1 script]# 
+
