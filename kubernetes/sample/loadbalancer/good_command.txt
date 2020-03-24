@@ -1,0 +1,2 @@
+while true ; do curl -w "\n" http://10.0.10.41:30003/ ;done
+ubectl label pods <POD> mylabel=awesome

@@ -1,0 +1,559 @@
+https://www.weave.works/blog/kubernetes-beginners-guide/
+https://wpengine.linuxacademy.com/wp-content/uploads/2019/04/Kubernetes-Cheat-Sheet_04032019.pdf
+
+##########################################################################
+###################(Dockerfile sample and tutorial site)####################
+##########################################################################
+FROM node:4.6
+WORKDIR /app
+ADD ./app
+RUN npm install
+EXPOSE 3000
+CMD npm start
+COPY
+https://www.digitalocean.com/community/tutorials/docker-explained-using-dockerfiles-to-automate-building-of-images
+https://github.com/iraj-norouzi/DockerCheatSheet
+
+docker run -p 3000:3000 -t 
+
+
+##########################################################################
+####################################(POD)###################################
+##########################################################################
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-server
+  labels:
+    app: helloworld
+spec:
+  containers:
+  - name: nginx-igap
+    image: nginx
+    ports:
+    - name: nginx-port
+      containerPort: 80
+
+
+kubernetes cheat sheet 
+https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+
+k create -f   first-app/helloworld.yml
+kubectl port-forward nodehelloworld.example.com  81:80
+curl localhost:81
+
+kubectl expose pod web-server --type=NodePort --name web-server-service
+
+##########################################################################
+####################################(UsefulCommand)#######################
+##########################################################################
+kubectl attach web-server -i
+kubectl exec pod -- ls /
+kubectl run -i --tty busybox --image=busybox -- sh  # Run pod as interactive shell
+kubectl describe {pod,service,node,...}  
+kubectl get rc    #display replication controller
+
+##########################################################################
+####################################(Replication Controller)##############
+##########################################################################
+if your application is stateless you can horizontally scale it (scale out)
+stateless=your application does not have a state, it doesnot write any local file / keeps local sessions
+all traditional databases (mysql,postgres) are stateful , they have database files that can't be split over multiple instance(scale up)
+Deployments are a newer and higher level concept than Replication Controllers. They manage the deployment of Replica Sets 
+(also a newer concept, but pretty much equivalent to Replication Controllers), and allow for easy updating of a Replica Set as well
+as the ability to roll back to a previous deployment.
+Previously this would have to be done with kubectl rolling-update which was not declarative and did not provide the rollback features.
+
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: helloworld-controller
+spec:
+  replicas: 2
+  selector:
+    app: helloworld
+  template:
+    metadata:
+       labels:
+        app: helloworld
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo
+        ports:
+        - name: nodejs-port
+          containerPort: 3000
+
+
+Horizental scale
+kubectl scale --replicas=4 -f /root/kubernetes-course/replication-controller/helloworld-repl-controller.yml 
+kubectl scale --replicas=4 rc/helloworld-controller
+##########################################################################
+####################################(Deployments)#########################
+##########################################################################
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: helloworld-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo
+        ports:
+        - name: nodejs-port
+          containerPort: 3000
+
+kubectl expose deployment helloworld-deployment --type=NodePort 
+kubectl get deployments                           #get information about current deployments
+kubectl get rs                                    #get about replica set
+kubectl get pods  --show-labels                   #get show labels
+kubectl create -f deployment/helloworld.yml --record
+kubectl rollout status deploymne/helloworld-deployment  # get deployments status
+kubectl set image deployment/helloworld-deployment k8s-demo=k8s-demo:2 
+kubectl rollout status deploymne/helloworld-deployment 
+kubectl edit deployment/helloworld-deployment  #revisionHistoryLimit: 100
+kubectl rollout history deployments/helloworld-deployment
+kubectl rollout undo deployments/helloworld-deployment   #rollback to previos version
+kubectl rollout undo deployments/helloworld-deployment --to-revision=n 	 #rollback to n version
+kubectl expose deployment helloworld-deployment --type=NodePort 
+kubectl scale --replicas=4 -f /root/kubernetes-course/replication-controller/helloworld-repl-controller.yml 
+kubectl scale --replicas=4 rc/helloworld-controller
+ 
+##########################################################################
+####################################(Service)#############################
+##########################################################################
+
+
+
+ClusterIP : This is the default Service Type, only reachable from within the cluster. Consider this as an internal load balancer.
+NodePort : The NodePort opens a static port on each node’s external networking interface. A ClusterIP is also automatically created when we create a NodePort Service. External traffic to the port will be routed to the internal cluster IP. We can use the combination of “NodeIP : NodePort” to call the NodePort Service from outside the cluster.
+LoadBalancer : The LoadBalancer Service type creates a cloud provider’s external load balancer. The NodePort and ClusterIP will also be created automatically when we create a LoadBalancer Service. External traffic to the load balancer will be routed to the NodePort which in turn will be routed to internal ClusterIP.
+-----------------
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-igap
+  labels:
+    app: nginx-igap
+spec:
+  containers:
+  - name: nginx-igap
+    image: nginx
+    ports:
+    - name: nginx-port
+      containerPort: 80
+
+-----------------
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-igap-service
+spec:
+  ports:
+  - port: 80
+    targetPort: nginx-port
+    protocol: TCP
+  selector:
+    app: nginx-igap
+  type: NodePort
+
+---------------
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: helloworld-service
+spec:
+  ports:
+  - port: 31001
+    nodePort: 31001
+    targetPort: nodejs-port
+    protocol: TCP
+  selector:
+    app: helloworld
+  type: NodePort
+
+##########################################################################
+####################################(LABLE)###################################
+##########################################################################
+for instance a particular pod can only run on a node labled with "envirement" equals "Development" or "qa"
+once nodes are tagged you can use lable selectors to let pods only run on specific nodes
+
+there are 2 steps require to  run a pod on specific set of nodes:
+-first you tag the node
+-then you add a nodeSelector to your pod configuration
+
+first step add a lable or multiple lables to your nodes:
+kubectl lable nodes docker2 hardware=docker22
+
+
+
+demo
+ apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: helloworld-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo
+        ports:
+        - name: nodejs-port
+          containerPort: 3000
+      nodeSelector:
+        hardware: docker22
+
+
+##########################################################################
+####################################(HEALTH CHECK)########################
+##########################################################################
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/ #so good
+https://cloud.google.com/blog/products/gcp/kubernetes-best-practices-setting-up-health-checks-with-readiness-and-liveness-probes
+
+if your application malfunctions the pod and container can still be running but the application might not work anymore
+to detect and resolve problem with your application you can run health checks 
+you can run 2 duffrent type of health checks
+-running a command in the container periodiclly
+-perodic checks on a url(http)
+
+kubectl edit deployment/helloworld-deployment
+
+Kubernetes Liveness and Readiness probes
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: helloworld-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo
+        ports:
+        - name: nodejs-port
+          containerPort: 3000
+        livenessProbe:
+          httpGet:
+            path: /
+            port: nodejs-port
+          initialDelaySeconds: 15
+          timeoutSeconds: 30
+
+
+
+kind: Deployment
+apiVersion: extensions/v1beta1
+metadata:
+  name: k8sprobetester-v1
+  namespace: default
+  labels:
+    app: k8sprobetester
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: k8sprobetester
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 40%
+  template:
+    metadata:
+      labels:
+        app: k8sprobetester
+    spec:
+      containers:
+      - image: "trondhindenes/k8sprobetester:latest"
+        name: k8sprobetester
+        env:
+          - name: START_WAIT_SECS
+            value: '15'
+          - name: SOME_OTHER_VAR
+            value: yasss
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+            httpHeaders:
+              - name: Host
+                value: KubernetesLivenessProbe
+          initialDelaySeconds: 20
+
+##########################################################################
+####################################(SECRET)##############################
+##########################################################################
+https://kubernetes.io/docs/concepts/configuration/secret/
+secret provides a way in kubernetes to distribute credentials keys passwords or secret data to the pods.
+
+
+echo -n 'admin' > ./username.txt
+echo -n '1f2d1e2e67df' > ./password.txt
+kubectl create secret generic db-user-pass --from-file=./username.txt --from-file=./password.txt
+-----------------------------------
+echo -n username | base64
+echo -n password | base64
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: db-secrets
+type: Opaque
+data:
+  username: cm9vdA==
+  password: cGFzc3dvcmQ=
+-----------------------------------
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: helloworld-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: helloworld
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo
+        ports:
+        - name: nodejs-port
+          containerPort: 3000
+        volumeMounts:
+        - name: cred-volume
+          mountPath: /etc/creds
+          readOnly: true
+      volumes:
+      - name: cred-volume
+        secret: 
+          secretName: db-secrets #/etc/creds/db-secret/
+-----------------------------------
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wordpress-secrets
+type: Opaque
+data:
+  db-password: cGFzc3dvcmQ=
+-----------------------------------
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wordpress-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - name: wordpress
+        image: wordpress:4-php7.0
+        ports:
+        - name: http-port
+          containerPort: 80
+        env:
+          - name: WORDPRESS_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: wordpress-secrets
+                key: db-password
+          - name: WORDPRESS_DB_HOST
+            value: 127.0.0.1
+      - name: mysql
+        image: mysql:5.7
+        ports:
+        - name: mysql-port
+          containerPort: 3306
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: wordpress-secrets
+                key: db-password
+
+
+---------------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-service
+spec:
+  ports:
+  - port: 31001
+    nodePort: 31001
+    targetPort: http-port
+    protocol: TCP
+  selector:
+    app: wordpress
+  type: NodePort
+
+##########################################################################
+####################################(wordress#########)###################
+##########################################################################
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: wordpress-deployment
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+      - name: wordpress
+        image: wordpress:4-php7.0
+        ports:
+        - name: http-port
+          containerPort: 80
+        env:
+          - name: WORDPRESS_DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: wordpress-secrets
+                key: db-password
+          - name: WORDPRESS_DB_HOST
+            value: 127.0.0.1
+      - name: mysql
+        image: mysql:5.7
+        ports:
+        - name: mysql-port
+          containerPort: 3306
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: wordpress-secrets
+                key: db-password
+
+---------------------
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wordpress-secrets
+type: Opaque
+data:
+  db-password: cGFzc3dvcmQ=
+
+-------------------
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wordpress-secrets
+type: Opaque
+data:
+  db-password: cGFzc3dvcmQ=
+
+##########################################################################
+####################################(SERVICE DISCOVERY)###################
+##########################################################################
+
+
+
+##########################################################################
+####################################(INGRESS)#############################
+##########################################################################
+
+What is Ingress?
+
+Ingress exposes HTTP and HTTPS routes from outside the cluster to services within the cluster. Traffic routing is controlled by rules defined on the Ingress resource.
+
+    internet
+        |
+   [ Ingress ]
+   --|-----|--
+   [ Services ]
+   
+   
+##########################################################################
+####################################(VOLUME)##############################
+##########################################################################
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: example-pv
+spec:
+  capacity:
+    storage: 100Gi
+  # volumeMode field requires BlockVolume Alpha feature gate to be enabled.
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  storageClassName: local-storage
+  local:
+    path: /mnt/disks/ssd1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - example-node
+          
+          
+          
+          
+          ---------------
+                  volumeMounts:
+        - mountPath: "/var/lib/mysql"
+          name: mysql-storage
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: db-storage
+
+
+##############################################################################
+k#####################kubernetes secret sample################################
+##############################################################################
+cat <<EOF | kubectl apply -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+type: Opaque
+data:
+  password: $(echo -n "s33msi4" | base64 -w0)
+  username: $(echo -n "jane" | base64 -w0)
+EOF
+
+    © 2020 GitHub, Inc.
+    Terms
+    Privacy
+    Security
+    Status
+    Help
+
+    Contact GitHub
+    Pricing
+    API
+    Training
+    Blog
+    About
+
+
