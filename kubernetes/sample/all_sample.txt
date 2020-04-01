@@ -297,6 +297,19 @@ spec:
               - name: Host
                 value: KubernetesLivenessProbe
           initialDelaySeconds: 20
+------------------------------
+
+
+
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - /ready-probe.sh
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+
 
 ##########################################################################
 ####################################(SECRET)##############################
@@ -468,6 +481,46 @@ data:
 
 ##########################################################################
 ####################################(SERVICE DISCOVERY)###################
+##########################################################################
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloworld-deployment
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: helloworld-db
+    spec:
+      containers:
+      - name: k8s-demo
+        image: wardviaene/k8s-demo
+        command: ["node", "index-db.js"]
+        ports:
+        - name: nodejs-port
+          containerPort: 3000
+        env:
+          - name: MYSQL_HOST
+            value: database-service #very important
+          - name: MYSQL_USER
+            value: root
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: helloworld-secrets
+                key: rootPassword
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: helloworld-secrets
+                key: database
+
+
+##########################################################################
+####################################(configmap)###########################
 ##########################################################################
 
 

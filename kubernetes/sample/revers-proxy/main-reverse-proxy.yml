@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Service
+metadata:
+ name: hello-svc
+spec:
+ selector:
+   role: app
+ ports:
+   - protocol: TCP
+     port: 80
+     targetPort: 80
+     nodePort: 32002
+ type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: hello-deployment
+ labels:
+   role: app
+spec:
+ replicas: 2
+ selector:
+   matchLabels:
+     role: app
+ template:
+   metadata:
+     labels:
+       role: app
+   spec:
+     containers:
+     - name: app1
+       image: "10.0.10.86:5000/echo1"
+     - name: app2
+       image: "10.0.10.86:5000/echo2"
+     - name: app3
+       image: "10.0.10.86:5000/echo3"
+     - name: web
+       image: "10.0.10.86:5000/routerngin"
+     nodeSelector:
+       software: apiecho
+
