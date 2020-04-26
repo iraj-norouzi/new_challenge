@@ -18,16 +18,20 @@ show_menus() {
         echo "1. Install Ansible"
         echo "2. Install Haproxy"
         echo "3. Install Docker-ce"
-        echo "4. Exit"
+        echo "4. Install Zabbix-Server"
+        echo "5. Install Zabbix-Agent"
+        echo "6. Exit"
 }
 read_options(){
 	local choice
-	read -p "Enter choice [ 1 - 4] " choice
+	read -p "Enter choice [ 1 - 6] " choice
 	case $choice in
 		1) Install_Ansible ;;
 		2) Install_Haproxy ;;
 		3) Install_Docker;;
-		4) exit 0;;
+		4) Install_Zabbix_Server;;
+		5) Install_Zabbix_Agent;;
+		6) exit 0;;
 		*) echo -e "${RED}Error...${STD}" && sleep 2
 	esac
 }
@@ -35,7 +39,7 @@ read_options(){
 # ----------------------------------------------
 # Step #3: Trap CTRL+C, CTRL+Z and quit singles
 # ----------------------------------------------
-trap '' SIGINT SIGQUIT SIGTSTP
+#trap '' SIGINT SIGQUIT SIGTSTP
  
 # -----------------------------------
 # Step #4: Main logic - infinite loop

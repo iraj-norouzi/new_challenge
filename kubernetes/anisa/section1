@@ -1,0 +1,3 @@
+DISCK=PV(persist volume)
+storageclasess=ceph-nfs-Gluster,...
+PVC=persistvolumeclaim

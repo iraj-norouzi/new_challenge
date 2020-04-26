@@ -19,5 +19,18 @@ Install_Haproxy(){
         pause
 }
 
-# function to display menus
+Install_Zabbix_Server(){
+
+
+	bash ./script/install_zabbix_server.sh
+	pause
+}
+
+
+Install_Zabbix_Agent(){
+
+
+        bash ./script/install_zabbix_agent.sh
+        pause
+}
 
