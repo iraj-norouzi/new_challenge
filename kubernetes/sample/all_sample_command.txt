@@ -22,6 +22,7 @@ kubectl get rc       show replication control
 
 kubectl scale --replicas=2  rc/helloworld-controller #scale with rc (replication control)
 
+###############################################################################################
 deployments 
 kubectl get deployments                           #get information about current deployments
 kubectl get rs                                    #get about replica set
@@ -51,12 +52,6 @@ kubectl label nodes docker4 hardware=high-spec
 echo -n "root">./username.txt
 echo -n "password">./password.txt
 kubectl create secret generic db-user-pass --from-file=./username.txt --from-file=password.txt
-
-
-
-
-
-
 
 
 ###############################################################################################
@@ -94,6 +89,14 @@ sample3:
                 key: db-password
           - name: WORDPRESS_DB_HOST
             value: 127.0.0.1
+
+##########################################################
+
+configmap
+kubectl create configmap app-config --from-file=app.properties
+
+volume and env
+
 
 ##########################################################
 Dashboard
