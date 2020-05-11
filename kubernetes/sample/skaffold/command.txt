@@ -1,0 +1,2 @@
+skaffold init -f skaffold.yaml  --force
+skaffold dev
