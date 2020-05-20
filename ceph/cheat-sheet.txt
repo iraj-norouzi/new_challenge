@@ -1,0 +1,20 @@
+ceph osd pool set foo pg_autoscale_mode on
+
+ceph config set global osd_pool_default_pg_autoscale_mode <mode>
+ceph osd pool autoscale-status
+ceph osd pool set <pool-name> pg_num_min <num>
+ceph osd pool create {pool-name} [pg_num]
+ceph osd pool set {pool-name} pg_autoscale_mode (on|off|warn)
+ceph osd pool get {pool-name} pg_num
+ceph osd pool get default.rgw.buckets.data  pg_num
+
+$ radosgw-admin metadata list
+$ radosgw-admin metadata list bucket
+$ radosgw-admin metadata list bucket.instance
+$ radosgw-admin metadata list user
+
+$ radosgw-admin metadata get bucket:<bucket>
+$ radosgw-admin metadata get bucket.instance:<bucket>:<bucket_id>
+$ radosgw-admin metadata get user:<user>   # get or setamghezi-files
+radosgw-admin user info --uid=majid
+radosgw-admin user create --display-name="johnny rotten" --uid=johnny
