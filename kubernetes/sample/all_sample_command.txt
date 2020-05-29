@@ -1,3 +1,10 @@
+kubectl top po --all-namespaces --sort-by=cpu
+kubectl top po --all-namespaces --sort-by=memory
+kubectl top node  --sort-by=cpu
+kubectl top node  --sort-by=memory
+kubectl top pod --all-namespaces | sort --reverse --key 4 --numeric
+kubeadm --v=5 token create --print-join-command
+
 kubectl get pod                                    get all information
 kubectl describe pod <POD>                         describe about pod
 kubectl expose pod <POD> --port=444 --name=front   Expose the port of a pod (creates a new service)
