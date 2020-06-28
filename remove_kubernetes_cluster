@@ -1,0 +1,7 @@
+kubectl delete node ????
+kubeadm reset -f
+rm -rf $HOME/.kube/config
+rm -rf /var/lib/etcd/*
+ip link del cni0
+ip link del flannel.1
+rm -rf /etc/cni/net.d/10-flannel.conflist

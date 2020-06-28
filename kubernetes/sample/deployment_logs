@@ -1,0 +1,1 @@
+ while true ; do kubectl -n default logs -f deployment/files-deployments --all-containers=true --since=10m >> /var/log/files.log ; done
